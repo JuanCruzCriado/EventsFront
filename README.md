@@ -1,59 +1,23 @@
-# EventsOrg
+# Nube Eventos
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.3.
+Aplicación Angular para la landing pública y el panel de administración de Nube Eventos.
 
-## Development server
+## Empezar
 
-To start a local development server, run:
+1. Iniciá el backend Spring Boot en `http://localhost:8080`.
+2. Desde esta carpeta, ejecutá `npm start`.
+3. Abrí `http://localhost:4200/` para la landing o `http://localhost:4200/admin` para el panel.
 
-```bash
-ng serve
-```
+El servidor de desarrollo reenvía las llamadas `/api` a Spring Boot mediante `src/proxy.conf.json`. Para producción, configurá el servidor web para que `/api` llegue al backend.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Panel de administración
 
-## Code scaffolding
+El login envía `username` y `password` a `POST /api/auth/login`. Si la respuesta contiene un JWT (`token`, `accessToken`, `access_token` o `jwt`), el panel lo manda como `Authorization: Bearer …`; también permite autenticación basada en cookie. La sesión del panel se mantiene en esta pestaña del navegador.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Desde el panel se pueden consultar solicitudes, tipos de evento, servicios y packs; crear tipos, servicios y packs; y agregar un servicio a un pack existente. Para agregarlo, la app envía `POST /api/packs/{packId}/services` con `{ "serviceId": "…" }`. Si tu controlador Spring espera otro formato para esa operación, ajustá el body en `src/app/admin/admin.ts`.
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Compilar
 
 ```bash
-ng generate --help
+npm run build
 ```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

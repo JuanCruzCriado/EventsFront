@@ -1,0 +1,134 @@
+<main class="admin-page">
+  @if (!loggedIn()) {
+    <section class="login-wrap">
+      <a class="brand" href="/"><span class="brand-mark">n</span><span>nube<span class="brand-light">eventos</span></span></a>
+      <div class="login-card">
+        <div class="eyebrow"><span class="eyebrow-dot"></span> ESPACIO PRIVADO</div>
+        <h1>Hola de nuevo.</h1>
+        <p class="login-intro">Iniciá sesión para gestionar tus eventos, packs y servicios.</p>
+        <form (ngSubmit)="login()" #loginForm="ngForm">
+          <label class="field">Usuario
+            <input name="username" [(ngModel)]="credentials.username" autocomplete="username" required>
+          </label>
+          <label class="field">Contraseña
+            <input type="password" name="password" [(ngModel)]="credentials.password" autocomplete="current-password" required>
+          </label>
+          @if (error()) { <div class="message error" role="alert">{{ error() }}</div> }
+          <button class="primary-button" type="submit" [disabled]="loginForm.invalid || busy()">
+            {{ busy() ? 'Ingresando…' : 'Ingresar' }} <span>↗</span>
+          </button>
+        </form>
+        <a class="back-link" href="/">← Volver al sitio</a>
+      </div>
+      <p class="login-foot">Nube Eventos · Panel de administración</p>
+    </section>
+  } @else {
+    <header class="admin-topbar">
+      <a class="brand" href="/"><span class="brand-mark">n</span><span>nube<span class="brand-light">eventos</span></span><span class="admin-tag">ADMIN</span></a>
+      <div class="user-menu"><span class="user-avatar">{{ username().slice(0, 1).toUpperCase() }}</span><span>{{ username() }}</span><button type="button" (click)="logout()">Cerrar sesión</button></div>
+    </header>
+    <div class="admin-layout">
+      <aside class="sidebar">
+        <div class="side-label">ADMINISTRAR</div>
+        <button type="button" [class.active]="activeSection() === 'events'" (click)="selectSection('events')"><span>◷</span> Solicitudes <i>{{ events().length }}</i></button>
+        <button type="button" [class.active]="activeSection() === 'eventTypes'" (click)="selectSection('eventTypes')"><span>✳</span> Tipos de evento <i>{{ eventTypes().length }}</i></button>
+        <button type="button" [class.active]="activeSection() === 'services'" (click)="selectSection('services')"><span>◇</span> Servicios <i>{{ services().length }}</i></button>
+        <button type="button" [class.active]="activeSection() === 'packs'" (click)="selectSection('packs')"><span>▧</span> Packs <i>{{ packs().length }}</i></button>
+        <div class="sidebar-note"><span>✦</span><p>Un buen evento empieza con una buena idea.</p></div>
+      </aside>
+
+      <section class="workspace">
+        <div class="workspace-heading">
+          <div><div class="eyebrow"><span class="eyebrow-dot"></span> TU ESPACIO DE TRABAJO</div>
+            <h1>{{ activeSection() === 'events' ? 'Solicitudes' : activeSection() === 'eventTypes' ? 'Tipos de evento' : activeSection() === 'services' ? 'Servicios' : 'Packs' }}</h1>
+            <p>Gestioná los detalles que hacen especial cada celebración.</p>
+          </div>
+          <button class="refresh-button" type="button" (click)="loadData()" [disabled]="loading()">↻ <span>Actualizar</span></button>
+        </div>
+
+        <div class="metrics">
+          <div><span>Solicitudes recibidas</span><strong>{{ events().length }}</strong><small>eventos en total</small></div>
+          <div><span>Tipos de evento</span><strong>{{ eventTypes().length }}</strong><small>opciones disponibles</small></div>
+          <div><span>Servicios</span><strong>{{ services().length }}</strong><small>en el catálogo</small></div>
+          <div><span>Packs</span><strong>{{ packs().length }}</strong><small>para ofrecer</small></div>
+        </div>
+
+        @if (notice()) { <div class="message success" role="status">{{ notice() }}</div> }
+        @if (error()) { <div class="message error" role="alert">{{ error() }}</div> }
+        @if (loading()) { <div class="loading-card"><span class="spinner"></span> Cargando datos…</div> }
+
+        @if (activeSection() === 'events') {
+          <section class="data-card">
+            <div class="card-heading"><div><h2>Solicitudes de eventos</h2><p>Las ideas que llegaron desde el formulario de la web.</p></div><span class="count-pill">{{ events().length }} solicitudes</span></div>
+            @if (!loading() && events().length === 0) { <div class="empty-state"><span>✳</span><strong>Todavía no hay solicitudes</strong><p>Cuando alguien complete el formulario, vas a verla acá.</p></div> }
+            @if (events().length > 0) {
+              <div class="table-wrap"><table><thead><tr><th>Evento</th><th>Email</th><th>Fecha</th><th>Tipo</th><th>Pack</th></tr></thead><tbody>
+                @for (event of events(); track trackRecord($index, event)) {
+                  <tr><td><strong>{{ label(event) }}</strong><small>{{ event['id'] }}</small></td><td>{{ displayValue(event['email']) }}</td><td>{{ displayValue(event['programmedDate']) }}</td><td>{{ eventTypeLabel(event['eventTypeId']) }}</td><td>{{ lookupPack(event['packId']) }}</td></tr>
+                }
+              </tbody></table></div>
+            }
+          </section>
+        }
+
+        @if (activeSection() === 'eventTypes') {
+          <section class="manage-grid">
+            <div class="data-card">
+              <div class="card-heading"><div><h2>Tipos disponibles</h2><p>Elegí qué clases de celebraciones ofrecés.</p></div></div>
+              @if (!loading() && eventTypes().length === 0) { <div class="empty-state compact">Aún no agregaste tipos de evento.</div> }
+              <div class="record-list">@for (type of eventTypes(); track trackRecord($index, type)) { <div class="record-row"><span class="record-icon">✳</span><div><strong>{{ label(type) }}</strong><small>{{ type.id }}</small></div></div> }</div>
+            </div>
+            <form class="data-card create-card" (ngSubmit)="createEventType()" #typeForm="ngForm">
+              <div class="card-heading"><div><h2>Nuevo tipo</h2><p>Sumá una opción al formulario.</p></div><span class="form-number">01</span></div>
+              <label class="field">Descripción <b>*</b><input name="typeDescription" [(ngModel)]="eventTypeForm.description" placeholder="Ej. Aniversario" required maxlength="100"></label>
+              <button class="primary-button" type="submit" [disabled]="typeForm.invalid || busy()">Crear tipo <span>↗</span></button>
+            </form>
+          </section>
+        }
+
+        @if (activeSection() === 'services') {
+          <section class="manage-grid">
+            <div class="data-card">
+              <div class="card-heading"><div><h2>Catálogo de servicios</h2><p>Elementos que podés incluir en tus packs.</p></div></div>
+              @if (!loading() && services().length === 0) { <div class="empty-state compact">Aún no agregaste servicios.</div> }
+              <div class="record-list">@for (service of services(); track trackRecord($index, service)) { <div class="record-row"><span class="record-icon">◇</span><div><strong>{{ label(service) }}</strong><small>{{ service.id }}</small></div><b class="price">${{ service.price | number:'1.0-0' }}</b></div> }</div>
+            </div>
+            <form class="data-card create-card" (ngSubmit)="createService()" #serviceFormRef="ngForm">
+              <div class="card-heading"><div><h2>Nuevo servicio</h2><p>Creá una opción para tus propuestas.</p></div><span class="form-number">02</span></div>
+              <label class="field">Descripción <b>*</b><input name="serviceDescription" [(ngModel)]="serviceForm.description" placeholder="Ej. Catering" required maxlength="120"></label>
+              <label class="field">Precio (ARS) <b>*</b><input type="number" name="servicePrice" [(ngModel)]="serviceForm.price" placeholder="35000" min="0" required></label>
+              <button class="primary-button" type="submit" [disabled]="serviceFormRef.invalid || busy()">Crear servicio <span>↗</span></button>
+            </form>
+          </section>
+        }
+
+        @if (activeSection() === 'packs') {
+          <section class="data-card pack-list-card">
+            <div class="card-heading"><div><h2>Packs creados</h2><p>Combinaciones listas para ofrecer.</p></div><span class="count-pill">{{ packs().length }} packs</span></div>
+            @if (!loading() && packs().length === 0) { <div class="empty-state compact">Todavía no hay packs. Creá el primero abajo.</div> }
+            <div class="pack-grid">@for (pack of packs(); track trackRecord($index, pack)) {
+              <article class="pack-card"><span class="record-icon">▧</span><h3>{{ label(pack) }}</h3><p>{{ eventTypeLabel(pack['eventTypeId']) }}</p><small>{{ pack.id }}</small><div class="pack-services">{{ serviceLabels(pack['serviceIds'] ?? pack['services']) }}</div></article>
+            }</div>
+          </section>
+          <section class="manage-grid pack-management">
+            <form class="data-card create-card" (ngSubmit)="createPack()" #packFormRef="ngForm">
+              <div class="card-heading"><div><h2>Crear pack</h2><p>Elegí un tipo y los servicios incluidos.</p></div><span class="form-number">03</span></div>
+              <label class="field">Descripción <b>*</b><input name="packDescription" [(ngModel)]="packForm.description" placeholder="Ej. Pack Básico" required maxlength="120"></label>
+              <label class="field">Tipo de evento <b>*</b><select name="packEventType" [(ngModel)]="packForm.eventTypeId" required><option value="" disabled>Elegí un tipo</option>@for (type of eventTypes(); track type.id) { <option [value]="type.id">{{ label(type) }}</option> }</select></label>
+              <label class="field">Servicios incluidos <small class="field-hint">Podés seleccionar varios</small><select name="packServices" [(ngModel)]="packForm.serviceIds" multiple size="4">@for (service of services(); track service.id) { <option [value]="service.id">{{ label(service) }}{{ service.price != null ? ' · $' + service.price : '' }}</option> }</select></label>
+              <button class="primary-button" type="submit" [disabled]="packFormRef.invalid || busy()">Crear pack <span>↗</span></button>
+            </form>
+            <form class="data-card create-card" (ngSubmit)="attachService()" #attachFormRef="ngForm">
+              <div class="card-heading"><div><h2>Agregar servicio</h2><p>Sumá un servicio a un pack existente.</p></div><span class="form-number">04</span></div>
+              <label class="field">Pack <b>*</b><select name="attachPack" [(ngModel)]="attachForm.packId" required><option value="" disabled>Elegí un pack</option>@for (pack of packs(); track pack.id) { <option [value]="pack.id">{{ label(pack) }}</option> }</select></label>
+              <label class="field">Servicio <b>*</b><select name="attachService" [(ngModel)]="attachForm.serviceId" required><option value="" disabled>Elegí un servicio</option>@for (service of services(); track service.id) { <option [value]="service.id">{{ label(service) }}</option> }</select></label>
+              <p class="form-help">Se enviará el identificador del servicio al endpoint del pack seleccionado.</p>
+              <button class="primary-button" type="submit" [disabled]="attachFormRef.invalid || busy()">Agregar al pack <span>↗</span></button>
+            </form>
+          </section>
+        }
+      </section>
+    </div>
+    <footer class="admin-footer"><a href="/">← Volver al sitio</a><span>Panel de administración · Nube Eventos</span></footer>
+  }
+</main>
