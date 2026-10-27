@@ -1,0 +1,91 @@
+<header class="topbar">
+  <a class="brand" href="#inicio" aria-label="Nube Eventos, inicio">
+    <span class="brand-mark">n</span>
+    <span>nube<span class="brand-light">eventos</span></span>
+  </a>
+  <nav aria-label="Navegación principal">
+    <a href="#experiencia">La experiencia</a>
+    <a href="#como-funciona">Cómo funciona</a>
+  </nav>
+  <a class="nav-cta" href="#cotizar">Hablemos de tu evento <span>↗</span></a>
+</header>
+
+<main>
+  <section class="hero" id="inicio">
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="eyebrow-dot"></span> EVENTOS QUE SE SIENTEN</div>
+      <h1>Tu momento.<br>Hecho <span>inolvidable.</span></h1>
+      <p>Celebraciones con intención, detalles que hablan de vos y recuerdos que se quedan mucho después del último brindis.</p>
+      <a class="hero-link" href="#cotizar">Empecemos a imaginar <span>↓</span></a>
+      <div class="hero-footnote"><span class="tiny-spark">✳</span> Vos lo soñás. Nosotros lo hacemos realidad.</div>
+    </div>
+    <div class="hero-image" role="img" aria-label="Mesa de celebración preparada con flores y velas">
+      <div class="image-overlay"></div>
+      <div class="image-note"><span>01 — 03</span><span>Celebraciones con alma</span></div>
+      <div class="image-stamp"><span>HECHO CON</span><strong>♡</strong><span>INTENCIÓN</span></div>
+    </div>
+    <div class="hero-side-label">BUENOS AIRES · ARGENTINA</div>
+  </section>
+
+  <section class="intro" id="experiencia">
+    <div class="intro-kicker">MÁS QUE UNA FIESTA</div>
+    <p>Hay días que merecen convertirse en <em>historias.</em> Creamos el escenario para que pase lo importante: estar juntos, celebrar y disfrutar.</p>
+    <div class="intro-signature">Con cariño, <span>Nube</span></div>
+  </section>
+
+  <section class="process" id="como-funciona">
+    <div><span class="step-no">01</span><strong>Nos contás</strong><small>Tu idea, tu fecha, tu gente.</small></div>
+    <span class="process-line"></span>
+    <div><span class="step-no">02</span><strong>Lo imaginamos</strong><small>Armamos algo bien tuyo.</small></div>
+    <span class="process-line"></span>
+    <div><span class="step-no">03</span><strong>Lo celebramos</strong><small>Vos disfrutás cada momento.</small></div>
+  </section>
+
+  <section class="contact" id="cotizar">
+    <div class="contact-copy">
+      <div class="eyebrow"><span class="eyebrow-dot"></span> EL PRIMER PASO</div>
+      <h2>Contanos qué<br><span>vamos a celebrar.</span></h2>
+      <p>Un cumpleaños, un encuentro especial o eso que todavía no tiene nombre. Nos encanta escuchar ideas nuevas.</p>
+      <div class="contact-aside"><span>✳</span><div>Sin compromiso.<br><strong>Con muchas ganas.</strong></div></div>
+    </div>
+    <form class="event-form" #eventForm="ngForm" (ngSubmit)="submitEvent()">
+      <div class="form-heading"><span>01 / TU IDEA</span><span class="required-note">* Campos obligatorios</span></div>
+      @if (loadingCatalogs()) {
+        <div class="form-notice">Estamos preparando las opciones para tu evento…</div>
+      } @else if (catalogError()) {
+        <div class="form-notice error" role="alert">{{ catalogError() }}</div>
+      }
+      <div class="field-row">
+        <label class="field">¿Qué celebramos? <b>*</b>
+          <select name="eventTypeId" [(ngModel)]="form.eventTypeId" required [disabled]="loadingCatalogs() || eventTypes().length === 0">
+            <option value="" disabled>Elegí el tipo de evento</option>
+            @for (type of eventTypes(); track type.id) { <option [value]="type.id">{{ optionLabel(type) }}</option> }
+          </select>
+        </label>
+        <label class="field">¿Cuándo? <b>*</b>
+          <input type="date" name="programmedDate" [(ngModel)]="form.programmedDate" [min]="minEventDate" required>
+        </label>
+      </div>
+      <label class="field">¿Qué tenés en mente? <b>*</b>
+        <textarea name="description" [(ngModel)]="form.description" rows="3" minlength="8" maxlength="1000" placeholder="Contanos un poquito: cuántos son, qué imaginás, algún detalle especial…" required></textarea>
+      </label>
+      <label class="field">¿Cuál es tu pack ideal? <b>*</b>
+        <select name="packId" [(ngModel)]="form.packId" required [disabled]="loadingCatalogs() || packs().length === 0">
+          <option value="" disabled>Elegí un pack</option>
+          @for (pack of packs(); track pack.id) { <option [value]="pack.id">{{ optionLabel(pack) }}{{ pack.price != null ? ' · $' + pack.price : '' }}</option> }
+        </select>
+      </label>
+      <label class="field">Tu email <b>*</b>
+        <input type="email" name="email" [(ngModel)]="form.email" placeholder="nombre@ejemplo.com" autocomplete="email" required>
+      </label>
+      @if (success()) { <div class="form-notice success" role="status">¡Listo! Recibimos tu idea. Muy pronto nos ponemos en contacto.</div> }
+      @if (submitError()) { <div class="form-notice error" role="alert">{{ submitError() }}</div> }
+      <button class="submit-button" type="submit" [disabled]="eventForm.invalid || submitting() || loadingCatalogs() || !!catalogError()">
+        {{ submitting() ? 'Enviando…' : 'Enviar mi idea' }} <span>↗</span>
+      </button>
+      <div class="privacy-note">Al enviar, aceptás que nos comuniquemos con vos sobre tu evento.</div>
+    </form>
+  </section>
+</main>
+
+<footer class="footer"><a class="brand" href="#inicio"><span class="brand-mark">n</span><span>nube<span class="brand-light">eventos</span></span></a><span>Hecho para encontrarnos. © 2026 Nube Eventos</span><a href="#inicio">Volver arriba ↑</a></footer>
